@@ -3,16 +3,32 @@ import type { Type } from "./Type";
 export interface Item{
  itemID?: number;
  type: Type;
- invoice_no: number;
- disposal: string;
- disposal_date: string;
- purchased: string;
- verify_by: string;
- verify_time: string;
+ inv_no: number;
+ disposal?: string;
+ disposal_dt?: string;
+ purchased?: string;
+ verif_time?: string;
+ verif_by?: string;
  amount : number;
  po: number;
- serial_number: string;
+ sn_no?: string;
  locationID: number,
  vendor: string,
- comments: string;
+ comments?: string;
 }
+
+
+export interface AddItem{
+ itemID?: number;
+ typeID: number;
+ inv_no: number;
+ purchased?: string;
+ amount : number;
+ po: number;
+ sn_no?: string;
+ locationID: number,
+ vendor: string,
+ comments?: string;
+}
+
+

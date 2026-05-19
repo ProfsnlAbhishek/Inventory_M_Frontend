@@ -78,7 +78,7 @@ export default function DashboardPage() {
             <TextField
               label="Invoice Number"
               fullWidth
-              value={selectedItem?.invoice_no ?? ""}
+              value={selectedItem?.inv_no ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },
@@ -88,7 +88,7 @@ export default function DashboardPage() {
             <TextField
               label="Serial Number"
               fullWidth
-              value={selectedItem?.serial_number ?? ""}
+              value={selectedItem?.sn_no ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },
@@ -177,7 +177,7 @@ export default function DashboardPage() {
             <TextField
               label="Disposal Date"
               fullWidth
-              value={selectedItem?.disposal_date ?? ""}
+              value={selectedItem?.disposal_dt ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },
@@ -202,7 +202,7 @@ export default function DashboardPage() {
             <TextField
               label="Verified Time"
               fullWidth
-              value={selectedItem?.verify_time ?? ""}
+              value={selectedItem?.verif_time ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },
@@ -212,7 +212,7 @@ export default function DashboardPage() {
             <TextField
               label="Person At Location"
               fullWidth
-              value={selectedItem?.verify_by ?? ""}
+              value={selectedItem?.verif_by ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },
@@ -264,6 +264,8 @@ export default function DashboardPage() {
           onClose={closeEquipmentAddDialog}
           onSaved={onEquipmentSaved}
           />
+
+          
               
 
       </Stack>
