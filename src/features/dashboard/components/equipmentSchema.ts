@@ -12,7 +12,7 @@ export const equipmentSchema = z.object({
   sn_no: z.string().optional(),
   vendor: z.string().optional(),
   comments: z.string().optional(),
-disposal: z.string().optional(),
+disposal: z.string().optional().nullable(),
 disposal_date: z.string().optional().nullable(),
   
   
@@ -24,8 +24,13 @@ disposal_date: z.string().optional().nullable(),
   model: z.string().min(1, "Model is required"),
 
   // Location
-  building: z.string().min(1, "Building is required"),
-  cubicle: z.string().min(1, "Cubicle is required"),
+ building: z.number().min(1, "Building is required"),
+ cubicle: z
+  .number()
+  .nullable()
+  .refine((val) => val !== null, {
+    message: "Cubicle is required",
+  }),
 
   // IDs derived at submit time (optional in form)
   typeID: z.number().optional(),

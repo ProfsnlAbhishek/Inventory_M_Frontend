@@ -59,8 +59,8 @@ export default function DashboardPage() {
       locationID: selectedItem.location?.locationID ?? 0,
       vendor: selectedItem.vendor,
       comments: selectedItem.comments,
-      building: selectedItem.location?.building?.bldgName ?? "",
-      cubicle: selectedItem.location?.cubicle ?? "",
+      building: selectedItem.location?.building?.bldgID ?? 0,
+      cubicle: selectedItem.location?.locationID ?? 0,
     }
   : null;
 

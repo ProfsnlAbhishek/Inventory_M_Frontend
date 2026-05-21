@@ -17,6 +17,9 @@ import { equipmentSchema, type EquipmentFormValues } from "./equipmentSchema";
 import EquipmentTypeDialog from "./EquipmentTypeDialog";
 import type { Building } from "../../../types/Building";
 import { useDisposalAll } from "../hooks/useDisposalAll";
+import { useBuildingAll } from "../hooks/useBuildingAll";
+import { useLocationsByBuilding } from "../hooks/useLocationByBuilding";
+import type { Location } from "../../../types/Location";
 
 type Props = {
   open: boolean;
@@ -33,58 +36,15 @@ export default function EquipmentEditDialog({
 
 }: Props) {
 
-  type LocationOption = {
-    locationID: number;
-    building: Building;
-    cubicle: string;
-  };
-  const dummyLocations: LocationOption[] = [
-  {
-    locationID: 1,
-    building: {
-      bldgID: 1,
-      bldgNo: "ENG",
-      bldgName: "Engineering Building",
-    },
-    cubicle: "ENG-201A",
-  },
-  {
-    locationID: 2,
-    building: {
-      bldgID: 2,
-      bldgNo: "ADM",
-      bldgName: "Administration Building",
-    },
-    cubicle: "CONF-01",
-  },
-  {
-    locationID: 3,
-    building: {
-      bldgID: 3,
-      bldgNo: "OPS",
-      bldgName: "Operations Center",
-    },
-    cubicle: "OPS-15",
-  },
-  {
-    locationID: 4,
-    building: {
-      bldgID: 4,
-      bldgNo: "FIN",
-      bldgName: "Finance Building",
-    },
-    cubicle: "FIN-304",
-  },
-  {
-    locationID: 5,
-    building: {
-      bldgID: 5,
-      bldgNo: "FS",
-      bldgName: "Field Services",
-    },
-    cubicle: "FS-110",
-  },
-];
+
+
+
+   const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
+
+
+
+
+  
   const defaultValues: EquipmentFormValues = {
     itemID: 0,
     typeID: 0,
@@ -102,8 +62,8 @@ export default function EquipmentEditDialog({
     locationID: 0,
     vendor: "",
     comments: "",
-    building: "",
-    cubicle: "",
+    building: 0,
+    cubicle: 0,
   };
 
 
@@ -123,6 +83,7 @@ export default function EquipmentEditDialog({
   React.useEffect(() => {
   if (open) {
     if (initialData) {
+      console.log("initil data", initialData)
       reset({
         ...initialData,
         total_units: 1,
@@ -137,17 +98,13 @@ export default function EquipmentEditDialog({
   const building = watch("building");
 
  
+  const { data: locationByBuilding, isLoading: locationByBuilidngLoading } =
+    useLocationsByBuilding(Number(watch("building")));
 
 
 
-const buildingOptions = Array.from(
-  new Map(dummyLocations.map((i) => [i.building.bldgName, i.building]),).values(),
-);
-const cubicleOptions = building
-  ? dummyLocations.filter(
-      (i) => i.building.bldgName === building,
-    )
-  : [];
+
+
 
   const handleClose = () => {
     reset(defaultValues);
@@ -157,10 +114,7 @@ const cubicleOptions = building
   const onSubmit = (data: EquipmentFormValues) => {
     const payload = {
       ...data,
-      locationID:
-        dummyLocations.find(
-          (l) => l.building.bldgName === data.building && l.cubicle === data.cubicle,
-        )?.locationID ?? 0,
+      
         
     };
 
@@ -191,7 +145,7 @@ const cubicleOptions = building
   }
 )}>
         <DialogTitle>
-        "Edit Equipment"
+        Edit Equipment
         </DialogTitle>
 
         <DialogContent>
@@ -213,52 +167,79 @@ const cubicleOptions = building
               </Stack>
 
               {/* BUILDING */}
-              <Controller
+             <Controller
                 name="building"
                 control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={buildingOptions}
-                    value={
-                      buildingOptions.find((b) => b.bldgName === field.value) ||
-                      null
-                    }
-                    onChange={(_, v) => {
-                      field.onChange(v?.bldgName ?? "");
-                      reset((prev) => ({
-                        ...prev,
-                        cubicle: "",
-                      }));
-                    }}
-                    getOptionLabel={(o) => o.bldgName}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Building" />
-                    )}
-                  />
-                )}
+                render={({ field }) => {
+                  const selectedBuilding =
+                    allBuilding?.find((b) => b.bldgID === Number(field.value)) ?? null;
+
+                  return (
+                    <Autocomplete<Building>
+                      options={allBuilding ?? []}
+                      value={selectedBuilding}
+                      loading={buildingLoading}
+                      onChange={(_, newValue) => {
+                        field.onChange(newValue?.bldgID ?? null);
+
+                        reset((prev) => ({
+                          ...prev,
+                          cubicle: -1,
+                        }));
+                      }}
+                      getOptionLabel={(option) => option.bldgName}
+                      isOptionEqualToValue={(option, value) =>
+                        option.bldgID === value.bldgID
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Building"
+                          error={!!errors.building}
+                          helperText={errors.building?.message}
+                        />
+                      )}
+                    />
+                  );
+                }}
               />
 
+
               {/* CUBICLE */}
-              <Controller
+               <Controller
                 name="cubicle"
                 control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={cubicleOptions}
-                    value={
-                      cubicleOptions.find((c) => c.cubicle === field.value) ||
-                      null
-                    }
-                    onChange={(_, v) => {
-                      field.onChange(v?.cubicle ?? "");
-                    }}
-                    getOptionLabel={(o) => o.cubicle}
-                    disabled={!building}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Cubicle" />
-                    )}
-                  />
-                )}
+                render={({ field }) => {
+                  const selectedLocation =
+                    locationByBuilding?.find(
+                      (c) =>
+                        c.locationID != null && c.locationID === field.value,
+                    ) ?? null;
+
+                  return (
+                    <Autocomplete<Location>
+                      options={locationByBuilding ?? []}
+                      value={selectedLocation}
+                      loading={locationByBuilidngLoading}
+                      onChange={(_, newValue) => {
+                        field.onChange(newValue?.locationID ?? null);
+                      }}
+                      getOptionLabel={(option) => option.cubicle}
+                      isOptionEqualToValue={(option, value) =>
+                        option.locationID === value.locationID
+                      }
+                      disabled={!building}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Cubicle"
+                          error={!!errors.cubicle}
+                          helperText={errors.cubicle?.message}
+                        />
+                      )}
+                    />
+                  );
+                }}
               />
 
 
@@ -294,6 +275,7 @@ const cubicleOptions = building
                         type="date"
                         value={field.value}
                         onChange={(e)=> field.onChange(e.target.value)}
+                        slotProps={{inputLabel: {shrink: true}}}
                         /> 
 
                   
@@ -308,7 +290,7 @@ const cubicleOptions = building
                     label="Comments"
                     error={!!errors.comments}
                     helperText={errors.comments?.message}
-                    value={field.value}
+                    value={field.value ?? ""}
                     onChange={(e) => {
                       field.onChange(e.target.value);
                     }}
@@ -322,7 +304,7 @@ const cubicleOptions = building
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleClose}>Cancel</Button>
           <Button type="submit" variant="contained">
-          "Update"
+          Update
           </Button>
         </DialogActions>
       </form>

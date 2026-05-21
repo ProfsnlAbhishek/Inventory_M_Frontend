@@ -13,10 +13,16 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Resolver } from "react-hook-form";
-import type { Type } from "../../../types/Type";
 import { equipmentSchema, type EquipmentFormValues } from "./equipmentSchema";
 import EquipmentTypeDialog from "./EquipmentTypeDialog";
 import type { Building } from "../../../types/Building";
+import { useItemTypeAll } from "../hooks/useItemTypeAll";
+
+import { useBuildingAll } from "../hooks/useBuildingAll";
+import { useLocationsByBuilding } from "../hooks/useLocationByBuilding";
+import type { Location } from "../../../types/Location";
+import { useVendorAll } from "../hooks/useVendorAll";
+import { all } from "axios";
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -24,98 +30,17 @@ type Props = {
 };
 export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
   const dummyVendor: string[] = ["Google", "Microsoft", "Netflix", "Meta"];
-  const dummyTypes: Type[] = [
-    {
-      typeID: 1,
-      type: "Laptop",
-      mfgr: "Dell",
-      model: "Latitude 7420",
-      comments: "Business laptop",
-    },
-    {
-      typeID: 2,
-      type: "Monitor",
-      mfgr: "LG",
-      model: "UltraWide 34WN80C",
-      comments: "Ultra-wide display",
-    },
-    {
-      typeID: 3,
-      type: "Printer",
-      mfgr: "HP",
-      model: "LaserJet Pro M404",
-      comments: "Office printer",
-    },
-    {
-      typeID: 4,
-      type: "Desktop",
-      mfgr: "Lenovo",
-      model: "ThinkCentre M90",
-      comments: "Workstation desktop",
-    },
-    {
-      typeID: 5,
-      type: "Tablet",
-      mfgr: "Apple",
-      model: "iPad Pro 12.9",
-      comments: "Field tablet",
-    },
-  ];
 
-  type LocationOption = {
-    locationID: number;
-    building: Building;
-    cubicle: string;
-  };
-  const dummyLocations: LocationOption[] = [
-    {
-      locationID: 1,
-      building: {
-        bldgID: 1,
-        bldgNo: "ENG",
-        bldgName: "Engineering Building",
-      },
-      cubicle: "ENG-201A",
-    },
-    {
-      locationID: 2,
-      building: {
-        bldgID: 2,
-        bldgNo: "ADM",
-        bldgName: "Administration Building",
-      },
-      cubicle: "CONF-01",
-    },
-    {
-      locationID: 3,
-      building: {
-        bldgID: 3,
-        bldgNo: "OPS",
-        bldgName: "Operations Center",
-      },
-      cubicle: "OPS-15",
-    },
-    {
-      locationID: 4,
-      building: {
-        bldgID: 4,
-        bldgNo: "FIN",
-        bldgName: "Finance Building",
-      },
-      cubicle: "FIN-304",
-    },
-    {
-      locationID: 5,
-      building: {
-        bldgID: 5,
-        bldgNo: "FS",
-        bldgName: "Field Services",
-      },
-      cubicle: "FS-110",
-    },
-  ];
+  const { data: allItemType } = useItemTypeAll();
+
+  const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
+  
+  const { data: allVendor, isLoading: vendorLoading } = useVendorAll();
+  console.log("here is all the vendor", allVendor);
+  
+
+
   const defaultValues: EquipmentFormValues = {
-    itemID: 0,
     typeID: 0,
     inv_no: "",
     purchased: "",
@@ -129,8 +54,8 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
     locationID: 0,
     vendor: "",
     comments: "",
-    building: "",
-    cubicle: "",
+    building: 0,
+    cubicle: 0,
   };
 
   const {
@@ -138,6 +63,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
     handleSubmit,
     reset,
     watch,
+
     formState: { errors },
   } = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentSchema) as Resolver<EquipmentFormValues>,
@@ -148,42 +74,47 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
   const mfgr = watch("mfgr");
   const building = watch("building");
 
-  const typeOptions = Array.from(new Set(dummyTypes.map((i) => i.type)));
+  const typeOptions = Array.from(new Set(allItemType?.map((i) => i.type)));
 
   const mfgrOptions = type
     ? Array.from(
-        new Set(dummyTypes.filter((i) => i.type === type).map((i) => i.mfgr)),
+        new Set(allItemType?.filter((i) => i.type === type).map((i) => i.mfgr)),
       )
     : [];
 
   const modelOptions =
     type && mfgr
-      ? dummyTypes.filter((i) => i.type === type && i.mfgr === mfgr)
+      ? allItemType?.filter((i) => i.type === type && i.mfgr === mfgr)
       : [];
 
-  const buildingOptions = Array.from(
-    new Map(
-      dummyLocations.map((i) => [i.building.bldgName, i.building]),
-    ).values(),
-  );
-  const cubicleOptions = building
-    ? dummyLocations.filter((i) => i.building.bldgName === building)
-    : [];
+  const extendedModelOptions = [
+    ...(modelOptions ?? []),
+    { model: "UNKNOWN", typeID: -1 }, // or any safe placeholder
+  ];
 
   const handleClose = () => {
     reset(defaultValues);
     onClose();
   };
 
+  const { data: locationByBuilding, isLoading: locationByBuilidngLoading } =
+    useLocationsByBuilding(Number(watch("building")));
+
   const onSubmit = (data: EquipmentFormValues) => {
     const payload = {
-      ...data,
-      typeID: dummyTypes.find((t) => t.model === data.model)?.typeID ?? 0,
-      locationID:
-        dummyLocations.find(
-          (l) =>
-            l.building.bldgName === data.building && l.cubicle === data.cubicle,
-        )?.locationID ?? 0,
+      typeID: data.typeID,
+      inv_no: data.inv_no,
+      disposal: null,
+      disposal_dt: null,
+      purchased: data.purchased,
+      amount: data.amount,
+
+      po: data.po,
+      sn_no: data.sn_no,
+      locationID: data.locationID,
+      vendor: data.vendor,
+      comments: data.comments,
+      total_units: data.total_units,
     };
 
     console.log("CREATE", payload);
@@ -202,7 +133,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle>"Add Equipment"</DialogTitle>
+        <DialogTitle>Add Equipment</DialogTitle>
 
         <DialogContent>
           <Box sx={{ mt: 2 }}>
@@ -213,7 +144,13 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                   name="inv_no"
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Inventory Number" fullWidth />
+                    <TextField
+                      {...field}
+                      label="Inventory Number"
+                      fullWidth
+                      error={!!errors.inv_no}
+                      helperText={errors.inv_no?.message}
+                    />
                   )}
                 />
 
@@ -221,7 +158,13 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                   name="po"
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="PO" fullWidth />
+                    <TextField
+                      {...field}
+                      label="PO"
+                      fullWidth
+                      error={!!errors.po}
+                      helperText={errors.po?.message}
+                    />
                   )}
                 />
 
@@ -234,6 +177,13 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                       label="Total Units"
                       fullWidth
                       type="number"
+                      error={!!errors.total_units}
+                      helperText={errors.total_units?.message}
+                      value={field.value === 0 ? "" : (field.value ?? "")}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        field.onChange(val === "" ? 0 : Number(val));
+                      }}
                     />
                   )}
                 />
@@ -256,51 +206,78 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
               <Controller
                 name="building"
                 control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={buildingOptions}
-                    value={
-                      buildingOptions.find((b) => b.bldgName === field.value) ||
-                      null
-                    }
-                    onChange={(_, v) => {
-                      field.onChange(v?.bldgName ?? "");
-                      reset((prev) => ({
-                        ...prev,
-                        cubicle: "",
-                      }));
-                    }}
-                    getOptionLabel={(o) => o.bldgName}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Building" />
-                    )}
-                  />
-                )}
+                render={({ field }) => {
+                  const selectedBuilding =
+                    allBuilding?.find(
+                      (b) => b.bldgID === Number(field.value),
+                    ) ?? null;
+
+                  return (
+                    <Autocomplete<Building>
+                      options={allBuilding ?? []}
+                      value={selectedBuilding}
+                      loading={buildingLoading}
+                      onChange={(_, newValue) => {
+                        field.onChange(newValue?.bldgID ?? null);
+
+                        reset((prev) => ({
+                          ...prev,
+                          cubicle: -1,
+                        }));
+                      }}
+                      getOptionLabel={(option) => option.bldgName}
+                      isOptionEqualToValue={(option, value) =>
+                        option.bldgID === value.bldgID
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Building"
+                          error={!!errors.building}
+                          helperText={errors.building?.message}
+                        />
+                      )}
+                    />
+                  );
+                }}
               />
 
               {/* CUBICLE */}
               <Controller
                 name="cubicle"
                 control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={cubicleOptions}
-                    value={
-                      cubicleOptions.find((c) => c.cubicle === field.value) ||
-                      null
-                    }
-                    onChange={(_, v) => {
-                      field.onChange(v?.cubicle ?? "");
-                    }}
-                    getOptionLabel={(o) => o.cubicle}
-                    disabled={!building}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Cubicle" />
-                    )}
-                  />
-                )}
-              />
+                render={({ field }) => {
+                  const selectedLocation =
+                    locationByBuilding?.find(
+                      (c) =>
+                        c.locationID != null && c.locationID === field.value,
+                    ) ?? null;
 
+                  return (
+                    <Autocomplete<Location>
+                      options={locationByBuilding ?? []}
+                      value={selectedLocation}
+                      loading={locationByBuilidngLoading}
+                      onChange={(_, newValue) => {
+                        field.onChange(newValue?.locationID ?? null);
+                      }}
+                      getOptionLabel={(option) => option.cubicle}
+                      isOptionEqualToValue={(option, value) =>
+                        option.locationID === value.locationID
+                      }
+                      disabled={!building}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Select Cubicle"
+                          error={!!errors.cubicle}
+                          helperText={errors.cubicle?.message}
+                        />
+                      )}
+                    />
+                  );
+                }}
+              />
               <Controller
                 name="type"
                 control={control}
@@ -375,27 +352,23 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                 control={control}
                 render={({ field }) => (
                   <Autocomplete
-                    options={modelOptions}
+                    options={extendedModelOptions ?? []}
                     value={
-                      modelOptions.find((m) => m.model === field.value) || null
+                      extendedModelOptions?.find(
+                        (m) => m.model === field.value,
+                      ) || null
                     }
                     onChange={(_, v) => {
                       field.onChange(v?.model ?? "");
+                      reset((prev) => ({
+                        ...prev,
+                        typeID: v?.typeID,
+                      }));
                     }}
-                    getOptionLabel={(o) => o.model}
-                    disabled={!mfgr}
-                    noOptionsText={
-                      <Box>
-                        <div>No Results Found</div>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() => setEquipmentTypeDialogOpen(true)}
-                        >
-                          Add Type
-                        </Button>
-                      </Box>
+                    getOptionLabel={(o) =>
+                      o.model === "UNKNOWN" ? "Unknown" : o.model
                     }
+                    disabled={!mfgr}
                     renderInput={(params) => (
                       <TextField {...params} label="Model" />
                     )}
@@ -419,20 +392,35 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                 )}
               />
 
-              <Controller
-                name="vendor"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={dummyVendor}
-                    value={field.value || null}
-                    onChange={(_, value) => field.onChange(value ?? "")}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Vendor" fullWidth />
-                    )}
-                  />
-                )}
-              />
+            <Controller
+  name="vendor"
+  control={control}
+  render={({ field }) => {
+    const selectedVendor =
+      allVendor?.find((v) => v.vendor === field.value) ?? null;
+
+    return (
+      <Autocomplete
+        options={allVendor ?? []}
+        value={selectedVendor}
+        onChange={(_, newValue) => {
+          field.onChange(newValue?.vendor ?? "");
+        }}
+        getOptionLabel={(option) => option.vendor}
+        isOptionEqualToValue={(option, value) =>
+          option.vendor === value.vendor
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label="Vendor"
+            fullWidth
+          />
+        )}
+      />
+    );
+  }}
+/>
 
               <Controller
                 name="comments"
@@ -456,7 +444,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleClose}>Cancel</Button>
           <Button type="submit" variant="contained">
-            "Save"
+            Save
           </Button>
         </DialogActions>
       </form>
