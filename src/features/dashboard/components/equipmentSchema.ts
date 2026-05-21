@@ -7,11 +7,16 @@ export const equipmentSchema = z.object({
   po: z.string().min(1, "PO is required"),
   total_units: z.coerce.number().min(1, "Total units must be at least 1"),
   amount: z.coerce.number().min(0, "Amount must be 0 or greater"),
-
+  
   purchased: z.string().optional(),
   sn_no: z.string().optional(),
   vendor: z.string().optional(),
   comments: z.string().optional(),
+disposal: z.string().optional(),
+disposal_date: z.string().optional().nullable(),
+  
+  
+  
 
   // Cascading dropdowns (stored as strings from Autocomplete)
   type: z.string().min(1, "Type is required"),

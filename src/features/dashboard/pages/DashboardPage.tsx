@@ -3,6 +3,8 @@ import React from "react";
 import type { Item } from "../../../types/Item";
 import ItemTable from "../components/ItemTable";
 import EquipmentAddDialog from "../components/EquipmentAddDialog";
+import type { EquipmentFormValues } from "../components/equipmentSchema";
+import EquipmentEditDialog from "../components/EquipmentEditDialog";
 
 export default function DashboardPage() {
   const [selectedItem, setSelectedItem] = React.useState<Item | null>(null);
@@ -13,21 +15,55 @@ export default function DashboardPage() {
   };
 
 
-  const [equipmentDialogOpen, setEquipmentDialogOpen] = React.useState(false);
+
+  const [equipmentAddDialogOpen, setEquipmentAddDialogOpen] = React.useState(false);
+  const [equipmentEditDialogOpen, setEquipmentEditDialogOpen] = React.useState(false);
   // const [equipmentDialogInitial, setEquipmentDialogInitial] = React.use
 
-  const openEquipmentAddDialog = ()=>{
-    // setEquipmentDialogInitial(null);
-    setEquipmentDialogOpen(true);
-  }
+  const openEquipmentAddDialog = () => {
 
-  const closeEquipmentAddDialog = ()=>{
-    setEquipmentDialogOpen(false)
-  }
-
-    const onEquipmentSaved = () => {
- 
+    setSelectedItem(null);
+    setEquipmentAddDialogOpen(true);
   };
+
+  const openEditDialog = () => {
+    if (!selectedItem) return;
+    setEquipmentEditDialogOpen(true);
+  };
+
+  const closeEquipmentAddDialog = () => {
+    setEquipmentAddDialogOpen(false);
+  };
+  const closeEquipmentEditDialog = () => {
+    setEquipmentEditDialogOpen(false);
+  };
+
+  const onAddEquipmentSaved = () => {};
+  const onEditEquipmentSaved = () => {};
+
+ const editValues: EquipmentFormValues | null = selectedItem
+  ? {
+      itemID: selectedItem.itemID,
+      typeID: selectedItem.type.typeID,
+      inv_no: selectedItem.inv_no,
+      purchased: selectedItem.purchased,
+      amount: selectedItem.amount,
+      disposal: selectedItem.disposal,
+      disposal_date: selectedItem.disposal_dt,
+      total_units: 1,
+      type: selectedItem.type.type,
+      mfgr: selectedItem.type.mfgr,
+      model: selectedItem.type.model,
+      po: selectedItem.po,
+      sn_no: selectedItem.sn_no,
+      locationID: selectedItem.location?.locationID ?? 0,
+      vendor: selectedItem.vendor,
+      comments: selectedItem.comments,
+      building: selectedItem.location?.building?.bldgName ?? "",
+      cubicle: selectedItem.location?.cubicle ?? "",
+    }
+  : null;
+
   return (
     <Box>
       <Stack direction="row" spacing={2}>
@@ -76,7 +112,7 @@ export default function DashboardPage() {
             </Stack>
 
             <TextField
-              label="Invoice Number"
+              label="Inventory Number"
               fullWidth
               value={selectedItem?.inv_no ?? ""}
               slotProps={{
@@ -212,14 +248,31 @@ export default function DashboardPage() {
             <TextField
               label="Person At Location"
               fullWidth
-              value={selectedItem?.verif_by ?? ""}
+              value={selectedItem?.verified_by ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },
               }}
             />
-            <TextField label="Building" fullWidth />
-            <TextField label="Cubicle" fullWidth />
+            <TextField
+              label="Building"
+              fullWidth
+              value={selectedItem?.location.building.bldgName ?? ""}
+              slotProps={{
+                inputLabel: { shrink: !!selectedItem },
+                input: { readOnly: true },
+              }}
+            />
+
+            <TextField
+              label="Cubicle"
+              fullWidth
+              value={selectedItem?.location.cubicle ?? ""}
+              slotProps={{
+                inputLabel: { shrink: !!selectedItem },
+                input: { readOnly: true },
+              }}
+            />
           </Box>
           <Box
             sx={{
@@ -249,8 +302,10 @@ export default function DashboardPage() {
             <Button variant="contained" onClick={() => setSelectedItem(null)}>
               Clear Form
             </Button>
-            <Button variant="contained">Edit</Button>
-            <Button variant="contained" onClick={openEquipmentAddDialog}>Add</Button>
+            <Button variant="contained" onClick={openEditDialog} disabled={!selectedItem}>Edit</Button>
+            <Button variant="contained" onClick={openEquipmentAddDialog}>
+              Add
+            </Button>
             <Button variant="contained">Print</Button>
             <Button variant="contained">Reports</Button>
           </Stack>
@@ -259,15 +314,20 @@ export default function DashboardPage() {
         <ItemTable setSelectedRow={grabSelectedRow} />
 
         {/* EquipmentAddDialog */}
-        <EquipmentAddDialog 
-          open={equipmentDialogOpen}
+        <EquipmentAddDialog
+          open={equipmentAddDialogOpen}
           onClose={closeEquipmentAddDialog}
-          onSaved={onEquipmentSaved}
-          />
+          onSaved={onAddEquipmentSaved}
+         
+        />
 
-          
-              
 
+        <EquipmentEditDialog
+          open={equipmentEditDialogOpen}
+          onClose={closeEquipmentEditDialog}
+          onSaved={onEditEquipmentSaved}
+          initialData={editValues}
+        />
       </Stack>
     </Box>
   );

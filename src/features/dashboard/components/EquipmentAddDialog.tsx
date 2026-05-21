@@ -16,35 +16,122 @@ import type { Resolver } from "react-hook-form";
 import type { Type } from "../../../types/Type";
 import { equipmentSchema, type EquipmentFormValues } from "./equipmentSchema";
 import EquipmentTypeDialog from "./EquipmentTypeDialog";
+import type { Building } from "../../../types/Building";
 type Props = {
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
 };
 export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
-
-
   const dummyVendor: string[] = ["Google", "Microsoft", "Netflix", "Meta"];
   const dummyTypes: Type[] = [
-    { typeID: 1, type: "Laptop", mfgr: "Dell", model: "XPS 15" },
-    { typeID: 2, type: "Smartphone", mfgr: "Apple", model: "iPhone 15 Pro" },
-    { typeID: 3, type: "Tablet", mfgr: "Samsung", model: "Galaxy Tab S9" },
-    { typeID: 4, type: "Monitor", mfgr: "LG", model: "UltraGear 27GP850" },
-    { typeID: 5, type: "Printer", mfgr: "HP", model: "LaserJet Pro M404" },
-    { typeID: 6, type: "Router", mfgr: "Netgear", model: "Nighthawk AX5400" },
-    { typeID: 7, type: "Keyboard", mfgr: "Logitech", model: "MX Keys" },
-    { typeID: 8, type: "Mouse", mfgr: "Razer", model: "DeathAdder V3" },
+    {
+      typeID: 1,
+      type: "Laptop",
+      mfgr: "Dell",
+      model: "Latitude 7420",
+      comments: "Business laptop",
+    },
+    {
+      typeID: 2,
+      type: "Monitor",
+      mfgr: "LG",
+      model: "UltraWide 34WN80C",
+      comments: "Ultra-wide display",
+    },
+    {
+      typeID: 3,
+      type: "Printer",
+      mfgr: "HP",
+      model: "LaserJet Pro M404",
+      comments: "Office printer",
+    },
+    {
+      typeID: 4,
+      type: "Desktop",
+      mfgr: "Lenovo",
+      model: "ThinkCentre M90",
+      comments: "Workstation desktop",
+    },
+    {
+      typeID: 5,
+      type: "Tablet",
+      mfgr: "Apple",
+      model: "iPad Pro 12.9",
+      comments: "Field tablet",
+    },
   ];
 
-  type LocationOption = { id: number; building: string; cubicle: string };
+  type LocationOption = {
+    locationID: number;
+    building: Building;
+    cubicle: string;
+  };
   const dummyLocations: LocationOption[] = [
-    { id: 1, building: "Headquarters", cubicle: "A-101" },
-    { id: 2, building: "Headquarters", cubicle: "A-102" },
-    { id: 3, building: "Engineering Center", cubicle: "B-210" },
-    { id: 4, building: "Engineering Center", cubicle: "B-211" },
-    { id: 5, building: "Operations", cubicle: "C-305" },
-    { id: 6, building: "Operations", cubicle: "C-306" },
+    {
+      locationID: 1,
+      building: {
+        bldgID: 1,
+        bldgNo: "ENG",
+        bldgName: "Engineering Building",
+      },
+      cubicle: "ENG-201A",
+    },
+    {
+      locationID: 2,
+      building: {
+        bldgID: 2,
+        bldgNo: "ADM",
+        bldgName: "Administration Building",
+      },
+      cubicle: "CONF-01",
+    },
+    {
+      locationID: 3,
+      building: {
+        bldgID: 3,
+        bldgNo: "OPS",
+        bldgName: "Operations Center",
+      },
+      cubicle: "OPS-15",
+    },
+    {
+      locationID: 4,
+      building: {
+        bldgID: 4,
+        bldgNo: "FIN",
+        bldgName: "Finance Building",
+      },
+      cubicle: "FIN-304",
+    },
+    {
+      locationID: 5,
+      building: {
+        bldgID: 5,
+        bldgNo: "FS",
+        bldgName: "Field Services",
+      },
+      cubicle: "FS-110",
+    },
   ];
+  const defaultValues: EquipmentFormValues = {
+    itemID: 0,
+    typeID: 0,
+    inv_no: "",
+    purchased: "",
+    amount: 0,
+    total_units: 0,
+    type: "",
+    mfgr: "",
+    model: "",
+    po: "",
+    sn_no: "",
+    locationID: 0,
+    vendor: "",
+    comments: "",
+    building: "",
+    cubicle: "",
+  };
 
   const {
     control,
@@ -54,23 +141,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
     formState: { errors },
   } = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentSchema) as Resolver<EquipmentFormValues>,
-    defaultValues: {
-      typeID: 0,
-      inv_no: "",
-      purchased: "",
-      amount: 0,
-      total_units: 0,
-      type: "",
-      mfgr: "",
-      model: "",
-      po: "",
-      sn_no: "",
-      locationID: 0,
-      vendor: "",
-      comments: "",
-      building: "",
-      cubicle: "",
-    },
+    defaultValues,
   });
 
   const type = watch("type");
@@ -91,33 +162,16 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
       : [];
 
   const buildingOptions = Array.from(
-    new Map(dummyLocations.map((i) => [i.building, i])).values(),
+    new Map(
+      dummyLocations.map((i) => [i.building.bldgName, i.building]),
+    ).values(),
   );
-
   const cubicleOptions = building
-    ? dummyLocations.filter((i) => i.building === building)
+    ? dummyLocations.filter((i) => i.building.bldgName === building)
     : [];
 
   const handleClose = () => {
-    reset({
-      itemID: 0,
-      typeID: 0,
-      inv_no: "",
-      purchased: "",
-      amount: 0,
-      total_units: 0,
-      type: "",
-      mfgr: "",
-      model: "",
-      po: "",
-      sn_no: "",
-      locationID: 0,
-      vendor: "",
-      comments: "",
-      building: "",
-      cubicle: "",
-    });
-
+    reset(defaultValues);
     onClose();
   };
 
@@ -127,24 +181,28 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
       typeID: dummyTypes.find((t) => t.model === data.model)?.typeID ?? 0,
       locationID:
         dummyLocations.find(
-          (l) => l.building === data.building && l.cubicle === data.cubicle,
-        )?.id ?? 0,
+          (l) =>
+            l.building.bldgName === data.building && l.cubicle === data.cubicle,
+        )?.locationID ?? 0,
     };
 
-    console.log(payload);
+    console.log("CREATE", payload);
+
+    onSaved?.();
+    handleClose();
   };
 
-  const [equipmentTypeDialogOpen, setEquipmentTypeDialogOpen] = React.useState(false);
+  const [equipmentTypeDialogOpen, setEquipmentTypeDialogOpen] =
+    React.useState(false);
 
   const closeEquipmentTypeDialog = () => {
-    setEquipmentTypeDialogOpen(false)
-  }
-
+    setEquipmentTypeDialogOpen(false);
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogTitle>Add Equipment</DialogTitle>
+        <DialogTitle>"Add Equipment"</DialogTitle>
 
         <DialogContent>
           <Box sx={{ mt: 2 }}>
@@ -155,7 +213,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                   name="inv_no"
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Invoice Number" fullWidth />
+                    <TextField {...field} label="Inventory Number" fullWidth />
                   )}
                 />
 
@@ -202,17 +260,17 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                   <Autocomplete
                     options={buildingOptions}
                     value={
-                      buildingOptions.find((b) => b.building === field.value) ||
+                      buildingOptions.find((b) => b.bldgName === field.value) ||
                       null
                     }
                     onChange={(_, v) => {
-                      field.onChange(v?.building ?? "");
+                      field.onChange(v?.bldgName ?? "");
                       reset((prev) => ({
                         ...prev,
                         cubicle: "",
                       }));
                     }}
-                    getOptionLabel={(o) => o.building}
+                    getOptionLabel={(o) => o.bldgName}
                     renderInput={(params) => (
                       <TextField {...params} label="Building" />
                     )}
@@ -264,7 +322,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                         <Button
                           variant="contained"
                           size="small"
-                          onClick={() =>setEquipmentTypeDialogOpen(true)}
+                          onClick={() => setEquipmentTypeDialogOpen(true)}
                         >
                           Add Type
                         </Button>
@@ -332,7 +390,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                         <Button
                           variant="contained"
                           size="small"
-                          onClick={() =>setEquipmentTypeDialogOpen(true)}
+                          onClick={() => setEquipmentTypeDialogOpen(true)}
                         >
                           Add Type
                         </Button>
@@ -398,16 +456,14 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleClose}>Cancel</Button>
           <Button type="submit" variant="contained">
-            Save
+            "Save"
           </Button>
         </DialogActions>
       </form>
       <EquipmentTypeDialog
-          open={equipmentTypeDialogOpen}
-          onClose={closeEquipmentTypeDialog}
-          
-
-        />
+        open={equipmentTypeDialogOpen}
+        onClose={closeEquipmentTypeDialog}
+      />
     </Dialog>
   );
 }

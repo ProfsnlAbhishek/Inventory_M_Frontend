@@ -3,4 +3,5 @@ export interface Type{
     type: string
     mfgr: string;
     model: string;
+    comments?: string;
 }
