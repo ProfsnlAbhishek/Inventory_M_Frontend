@@ -27,7 +27,20 @@ export const equipmentSchema = z.object({
   // IDs derived at submit time (optional in form)
   typeID: z.number().optional(),
   locationID: z.number().optional(),
-});
+}) .refine(
+    (data) => {
+      // if disposal exists, disposal_date must exist
+      if (data.disposal && !data.disposal_date) {
+        return false;
+      }
+
+      return true;
+    },
+    {
+      path: ["disposal_date"],
+      message: "Disposal date is required when disposal is selected",
+    },
+  );
 
 export type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 

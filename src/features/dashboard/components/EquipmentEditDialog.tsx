@@ -29,25 +29,15 @@ type Props = {
   onClose: () => void;
   onSaved?: () => void;
   initialData?: EquipmentFormValues | null;
-
 };
 export default function EquipmentEditDialog({
   open,
   onClose,
   onSaved,
   initialData,
-
 }: Props) {
+  const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
 
-
-
-
-   const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
-
-
-
-
-  
   const defaultValues: EquipmentFormValues = {
     itemID: 0,
     typeID: 0,
@@ -69,8 +59,7 @@ export default function EquipmentEditDialog({
     cubicle: 0,
   };
 
-
-  const {data: disposalData} = useDisposalAll();
+  const { data: disposalData } = useDisposalAll();
 
   const {
     control,
@@ -84,65 +73,53 @@ export default function EquipmentEditDialog({
   });
 
   React.useEffect(() => {
-  if (open) {
-    if (initialData) {
-      console.log("initil data", initialData)
-      reset({
-        ...initialData,
-        total_units: 1,
-      });
-    } else {
-      reset(defaultValues);
+    if (open) {
+      if (initialData) {
+        console.log("initil data", initialData);
+        reset({
+          ...initialData,
+          total_units: 1,
+        });
+      } else {
+        reset(defaultValues);
+      }
     }
-  }
-}, [open, initialData, reset]);
+  }, [open, initialData, reset]);
 
- 
   const building = watch("building");
 
- 
   const { data: locationByBuilding, isLoading: locationByBuilidngLoading } =
     useLocationsByBuilding(Number(watch("building")));
-
 
   const handleClose = () => {
     reset(defaultValues);
     onClose();
   };
 
-
   const updateMutation = useUpdateItem(initialData?.itemID ?? NaN);
 
-  const onSubmit =async (data: EquipmentFormValues) => {
-    try{
+  const onSubmit = async (data: EquipmentFormValues) => {
+    try {
       const payload: AddItemInput = {
-          typeID: data.typeID!,
-          inv_no: data.inv_no,
-          disposal: data.disposal,
-          disposal_dt: data.disposal_date,
-          purchased: data.purchased,
-          amount: data.amount,
-          po: data.po,
-          sn_no: data.sn_no,
-          locationID: data.cubicle!,
-          vendor: "AMAZON",
-          comments: data.comments,
-          total_units: data.total_units,
-        };
+        typeID: data.typeID!,
+        inv_no: data.inv_no,
+        disposal: data.disposal,
+        disposal_dt: data.disposal_date,
+        purchased: data.purchased,
+        amount: data.amount,
+        po: data.po,
+        sn_no: data.sn_no,
+        locationID: data.cubicle!,
+        vendor: "AMAZON",
+        comments: data.comments,
+        total_units: data.total_units,
+      };
 
-        const updated = await updateMutation.mutateAsync(payload);
-        console.log("data is inserted", updated)
-
-
-
-
-
-
-    }catch(e: unknown){
-      console.error("Item save failed!", toErrorMessage(e))
+      const updated = await updateMutation.mutateAsync(payload);
+      console.log("data is inserted", updated);
+    } catch (e: unknown) {
+      console.error("Item save failed!", toErrorMessage(e));
     }
-   
- 
 
     onSaved?.();
     handleClose();
@@ -155,20 +132,24 @@ export default function EquipmentEditDialog({
     setEquipmentTypeDialogOpen(false);
   };
 
+  const handleTypeCreated= ()=>{
+    console.log("worked");
+  }
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-      <form onSubmit={handleSubmit(
-  (data) => {
-    console.log("VALID SUBMIT", data);
-    onSubmit(data);
-  },
-  (errors) => {
-    console.log("VALIDATION ERRORS", errors);
-  }
-)}>
-        <DialogTitle>
-        Edit Equipment
-        </DialogTitle>
+      <form
+        onSubmit={handleSubmit(
+          (data) => {
+            console.log("VALID SUBMIT", data);
+            onSubmit(data);
+          },
+          (errors) => {
+            console.log("VALIDATION ERRORS", errors);
+          },
+        )}
+      >
+        <DialogTitle>Edit Equipment</DialogTitle>
 
         <DialogContent>
           <Box sx={{ mt: 2 }}>
@@ -179,19 +160,25 @@ export default function EquipmentEditDialog({
                   name="inv_no"
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Inventory Number" fullWidth slotProps={{input: {readOnly: true}}} />
+                    <TextField
+                      {...field}
+                      label="Inventory Number"
+                      fullWidth
+                      slotProps={{ input: { readOnly: true } }}
+                    />
                   )}
                 />
-              
               </Stack>
 
               {/* BUILDING */}
-             <Controller
+              <Controller
                 name="building"
                 control={control}
                 render={({ field }) => {
                   const selectedBuilding =
-                    allBuilding?.find((b) => b.bldgID === Number(field.value)) ?? null;
+                    allBuilding?.find(
+                      (b) => b.bldgID === Number(field.value),
+                    ) ?? null;
 
                   return (
                     <Autocomplete<Building>
@@ -223,9 +210,8 @@ export default function EquipmentEditDialog({
                 }}
               />
 
-
               {/* CUBICLE */}
-               <Controller
+              <Controller
                 name="cubicle"
                 control={control}
                 render={({ field }) => {
@@ -261,7 +247,6 @@ export default function EquipmentEditDialog({
                 }}
               />
 
-
               <Controller
                 name="disposal"
                 control={control}
@@ -270,34 +255,39 @@ export default function EquipmentEditDialog({
                     options={disposalData ?? []}
                     value={field.value || ""}
                     onChange={(_, value) => {
-        field.onChange(value ?? "");
-      }}
-    isOptionEqualToValue={(option, value) => option === value}
+                      field.onChange(value ?? "");
+                    }}
+                    isOptionEqualToValue={(option, value) => option === value}
                     noOptionsText={
                       <Box>
                         <div>No Results Found</div>
                       </Box>
                     }
                     renderInput={(params) => (
-                      <TextField {...params} label="Disposal" error={!!errors.disposal} helperText={errors.disposal?.message} />
+                      <TextField
+                        {...params}
+                        label="Disposal"
+                        error={!!errors.disposal}
+                        helperText={errors.disposal?.message}
+                      />
                     )}
                   />
                 )}
               />
 
-               <Controller
+              <Controller
                 name="disposal_date"
                 control={control}
                 render={({ field }) => (
-                    <TextField 
-                        label="Date" 
-                        type="date"
-                        value={field.value}
-                        onChange={(e)=> field.onChange(e.target.value)}
-                        slotProps={{inputLabel: {shrink: true}}}
-                        /> 
-
-                  
+                  <TextField
+                    label="Date"
+                    type="date"
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    error={!!errors.disposal_date}
+                    helperText={errors.disposal_date?.message}
+                  />
                 )}
               />
 
@@ -323,13 +313,14 @@ export default function EquipmentEditDialog({
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={handleClose}>Cancel</Button>
           <Button type="submit" variant="contained">
-          Update
+            Update
           </Button>
         </DialogActions>
       </form>
       <EquipmentTypeDialog
         open={equipmentTypeDialogOpen}
         onClose={closeEquipmentTypeDialog}
+        onCreated={handleTypeCreated}
       />
     </Dialog>
   );
