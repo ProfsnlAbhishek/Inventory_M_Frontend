@@ -7,16 +7,13 @@ export const equipmentSchema = z.object({
   po: z.string().min(1, "PO is required"),
   total_units: z.coerce.number().min(1, "Total units must be at least 1"),
   amount: z.coerce.number().min(0, "Amount must be 0 or greater"),
-  
-  purchased: z.string().optional(),
+
+  purchased: z.string().min(1, "Date is required"),
   sn_no: z.string().optional(),
-  vendor: z.string().optional(),
+  vendor: z.string().min(1, "Vendor is required"),
   comments: z.string().optional(),
-disposal: z.string().optional().nullable(),
-disposal_date: z.string().optional().nullable(),
-  
-  
-  
+  disposal: z.string().optional().nullable(),
+  disposal_date: z.string().optional().nullable(),
 
   // Cascading dropdowns (stored as strings from Autocomplete)
   type: z.string().min(1, "Type is required"),
@@ -24,22 +21,15 @@ disposal_date: z.string().optional().nullable(),
   model: z.string().min(1, "Model is required"),
 
   // Location
- building: z.number().min(1, "Building is required"),
- cubicle: z
-  .number()
-  .nullable()
-  .refine((val) => val !== null, {
-    message: "Cubicle is required",
-  }),
+  building: z.number().min(1, "Building is required"),
+  cubicle: z.number().int().min(1, "Cubicle is required"),
 
   // IDs derived at submit time (optional in form)
   typeID: z.number().optional(),
   locationID: z.number().optional(),
 });
 
-
 export type EquipmentFormValues = z.infer<typeof equipmentSchema>;
-
 
 export type EquipmentPayload = Omit<
   EquipmentFormValues,

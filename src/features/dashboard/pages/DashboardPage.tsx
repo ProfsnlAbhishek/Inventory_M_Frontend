@@ -14,14 +14,13 @@ export default function DashboardPage() {
     setSelectedItem(row);
   };
 
-
-
-  const [equipmentAddDialogOpen, setEquipmentAddDialogOpen] = React.useState(false);
-  const [equipmentEditDialogOpen, setEquipmentEditDialogOpen] = React.useState(false);
+  const [equipmentAddDialogOpen, setEquipmentAddDialogOpen] =
+    React.useState(false);
+  const [equipmentEditDialogOpen, setEquipmentEditDialogOpen] =
+    React.useState(false);
   // const [equipmentDialogInitial, setEquipmentDialogInitial] = React.use
 
   const openEquipmentAddDialog = () => {
-
     setSelectedItem(null);
     setEquipmentAddDialogOpen(true);
   };
@@ -41,35 +40,35 @@ export default function DashboardPage() {
   const onAddEquipmentSaved = () => {};
   const onEditEquipmentSaved = () => {};
 
- const editValues: EquipmentFormValues | null = selectedItem
-  ? {
-      itemID: selectedItem.itemID,
-      typeID: selectedItem.type.typeID,
-      inv_no: selectedItem.inv_no,
-      purchased: selectedItem.purchased,
-      amount: selectedItem.amount,
-      disposal: selectedItem.disposal,
-      disposal_date: selectedItem.disposal_dt,
-      total_units: 1,
-      type: selectedItem.type.type,
-      mfgr: selectedItem.type.mfgr,
-      model: selectedItem.type.model,
-      po: selectedItem.po,
-      sn_no: selectedItem.sn_no,
-      locationID: selectedItem.location?.locationID ?? 0,
-      vendor: selectedItem.vendor,
-      comments: selectedItem.comments,
-      building: selectedItem.location?.building?.bldgID ?? 0,
-      cubicle: selectedItem.location?.locationID ?? 0,
-    }
-  : null;
+  const editValues: EquipmentFormValues | null = selectedItem
+    ? {
+        itemID: selectedItem.itemID,
+        typeID: selectedItem.type.typeID,
+        inv_no: selectedItem.inv_no,
+        purchased: selectedItem.purchased,
+        amount: selectedItem.amount,
+        disposal: selectedItem.disposal,
+        disposal_date: selectedItem.disposal_dt,
+        total_units: 1,
+        type: selectedItem.type.type,
+        mfgr: selectedItem.type.mfgr,
+        model: selectedItem.type.model,
+        po: selectedItem.po,
+        sn_no: selectedItem.sn_no,
+        locationID: selectedItem.location?.locationID ?? 0,
+        vendor: selectedItem.vendor,
+        comments: selectedItem.comments,
+        building: selectedItem.location?.building?.bldgID ?? 0,
+        cubicle: selectedItem.location?.locationID ?? 0,
+      }
+    : null;
 
   return (
     <Box>
       <Stack direction="row" spacing={2}>
         <Box>
-          <Typography>
-            <h2>Equipment Infromation</h2>
+          <Typography variant="h5" component="h2">
+            Equipment Information
           </Typography>
 
           <Box
@@ -302,7 +301,13 @@ export default function DashboardPage() {
             <Button variant="contained" onClick={() => setSelectedItem(null)}>
               Clear Form
             </Button>
-            <Button variant="contained" onClick={openEditDialog} disabled={!selectedItem}>Edit</Button>
+            <Button
+              variant="contained"
+              onClick={openEditDialog}
+              disabled={!selectedItem}
+            >
+              Edit
+            </Button>
             <Button variant="contained" onClick={openEquipmentAddDialog}>
               Add
             </Button>
@@ -318,9 +323,7 @@ export default function DashboardPage() {
           open={equipmentAddDialogOpen}
           onClose={closeEquipmentAddDialog}
           onSaved={onAddEquipmentSaved}
-         
         />
-
 
         <EquipmentEditDialog
           open={equipmentEditDialogOpen}

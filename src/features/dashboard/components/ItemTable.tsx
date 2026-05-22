@@ -1,3 +1,4 @@
+
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Paper } from "@mui/material";
 
@@ -9,31 +10,49 @@ type Props = {
 };
 
 const equipmentCols: GridColDef<Item>[] = [
-  { field: "itemID", headerName: "ID", width: 80 },
+  {
+    field: "itemID",
+    headerName: "ID",
+    width: 80,
+  },
   {
     field: "equipment",
     headerName: "Type",
-    width: 200,
-    valueGetter: (_, row) => `${row.type.mfgr} ${row.type.model}`,
+    width: 280,
+    valueGetter: (_, row) =>
+      `${row.type?.mfgr ?? ""} ${row.type?.model ?? ""}`,
   },
-  {field: "inv_no", headerName:"Inventory Number", width: 250}
+  {
+    field: "inv_no",
+    headerName: "Inventory Number",
+    width: 250,
+  },
 ];
 
 export default function ItemTable({ setSelectedRow }: Props) {
- 
-  const {data: allItems, isLoading: itemsLoading} = useItemAll();
-
+  const { data: allItems, isLoading } = useItemAll();
 
   return (
     <Paper sx={{ height: 700, width: "49%" }}>
       <DataGrid
         rows={allItems ?? []}
         columns={equipmentCols}
-        loading={itemsLoading}
         getRowId={(row) => row.itemID!}
+        loading={isLoading}
         onRowClick={({ row }) => setSelectedRow(row)}
-        initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-        pageSizeOptions={[10, 20]}
+        initialState={{
+          pagination: {
+            paginationModel: { pageSize: 10 },
+          },
+        }}
+        pageSizeOptions={[10, 20, 50]}
+
+        slotProps={{
+          loadingOverlay: {
+            variant: "skeleton",
+            noRowsVariant: "linear-progress",
+          },
+        }}
         sx={{ border: 0 }}
       />
     </Paper>

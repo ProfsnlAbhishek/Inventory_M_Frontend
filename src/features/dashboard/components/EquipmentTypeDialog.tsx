@@ -12,17 +12,24 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Resolver } from "react-hook-form";
-import { equipmentTypeSchema, type EquipmentTypeFormValues } from "./equipmentTypeSchema";
+import {
+  equipmentTypeSchema,
+  type EquipmentTypeFormValues,
+} from "./equipmentTypeSchema";
+import { useCreateItemType } from "../hooks/useCreateItemType";
+import type { TypeInput } from "../../../types/Type";
+import { toErrorMessage } from "../../../utils/errors";
 
 type Props = {
   open: boolean;
   onClose: () => void;
+  onCreated: (data: TypeInput) => void;
 };
-
 
 export default function EquipmentTypeDialog({
   open,
   onClose,
+  onCreated,
 }: Props) {
   const {
     control,
@@ -30,12 +37,14 @@ export default function EquipmentTypeDialog({
     reset,
     formState: { errors },
   } = useForm<EquipmentTypeFormValues>({
-    resolver:
-      zodResolver(equipmentTypeSchema) as Resolver<EquipmentTypeFormValues>,
+    resolver: zodResolver(
+      equipmentTypeSchema,
+    ) as Resolver<EquipmentTypeFormValues>,
     defaultValues: {
       type: "",
       mfgr: "",
       model: "",
+      comments: "",
     },
   });
 
@@ -44,21 +53,30 @@ export default function EquipmentTypeDialog({
     onClose();
   };
 
-  const onSubmit = (data: EquipmentTypeFormValues) => {
-    console.log(data);
+  const createMutation = useCreateItemType();
 
-    // save logic here
+  const onSubmit = async (data: EquipmentTypeFormValues) => {
+    console.log(data);
+    try {
+      const payload: TypeInput = {
+        type: data.type,
+        mfgr: data.mfgr,
+        model: data.model,
+        comments: data.comments,
+      };
+
+      const created = await createMutation.mutateAsync(payload);
+      onCreated?.(created);
+      console.log(created);
+    } catch (e: unknown) {
+      console.error("ItemType creation failed", toErrorMessage(e));
+    }
 
     handleClose();
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={handleClose}
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle>Add Type</DialogTitle>
 
@@ -105,18 +123,26 @@ export default function EquipmentTypeDialog({
                 />
               )}
             />
+            <Controller
+              name="comments"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Comments"
+                  fullWidth
+                  error={!!errors.model}
+                  helperText={errors.model?.message}
+                />
+              )}
+            />
           </Stack>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose}>
-            Close
-          </Button>
+          <Button onClick={handleClose}>Close</Button>
 
-          <Button
-            type="submit"
-            variant="contained"
-          >
+          <Button type="submit" variant="contained">
             Save
           </Button>
         </DialogActions>

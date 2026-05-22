@@ -5,3 +5,5 @@ export interface Type{
     model: string;
     comments?: string;
 }
+
+export type TypeInput = Omit<Type, `typeID`>;

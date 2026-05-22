@@ -22,23 +22,22 @@ import { useBuildingAll } from "../hooks/useBuildingAll";
 import { useLocationsByBuilding } from "../hooks/useLocationByBuilding";
 import type { Location } from "../../../types/Location";
 import { useVendorAll } from "../hooks/useVendorAll";
-import { all } from "axios";
+import { useCreateItem } from "../hooks/useCreateItem";
+import type { AddItemInput } from "../../../types/Item";
+import { toErrorMessage } from "../../../utils/errors";
+import type { Type } from "../../../types/Type";
 type Props = {
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
 };
 export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
-  const dummyVendor: string[] = ["Google", "Microsoft", "Netflix", "Meta"];
-
   const { data: allItemType } = useItemTypeAll();
 
   const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
-  
-  const { data: allVendor, isLoading: vendorLoading } = useVendorAll();
-  console.log("here is all the vendor", allVendor);
-  
+  // console.log("all building", allBuilding)
 
+  const { data: allVendor } = useVendorAll();
 
   const defaultValues: EquipmentFormValues = {
     typeID: 0,
@@ -63,7 +62,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
     handleSubmit,
     reset,
     watch,
-
+    setValue,
     formState: { errors },
   } = useForm<EquipmentFormValues>({
     resolver: zodResolver(equipmentSchema) as Resolver<EquipmentFormValues>,
@@ -99,25 +98,36 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
 
   const { data: locationByBuilding, isLoading: locationByBuilidngLoading } =
     useLocationsByBuilding(Number(watch("building")));
+  // console.log("building locations", locationByBuilding)
 
-  const onSubmit = (data: EquipmentFormValues) => {
-    const payload = {
-      typeID: data.typeID,
-      inv_no: data.inv_no,
-      disposal: null,
-      disposal_dt: null,
-      purchased: data.purchased,
-      amount: data.amount,
+  const createMutation = useCreateItem();
 
-      po: data.po,
-      sn_no: data.sn_no,
-      locationID: data.locationID,
-      vendor: data.vendor,
-      comments: data.comments,
-      total_units: data.total_units,
-    };
+  const onSubmit = async (data: EquipmentFormValues) => {
+    console.log("the data is:", data);
 
-    console.log("CREATE", payload);
+    try {
+      const payload: AddItemInput = {
+        typeID: data.typeID!,
+        inv_no: data.inv_no,
+        disposal: null,
+        disposal_dt: null,
+        purchased: data.purchased,
+        amount: data.amount,
+        po: data.po,
+        sn_no: data.sn_no,
+        locationID: data.cubicle!,
+        vendor: data.vendor,
+        comments: data.comments,
+        total_units: data.total_units,
+      };
+
+      const created = await createMutation.mutateAsync(payload);
+      console.log("this is created", created);
+    } catch (e: unknown) {
+      console.error("Item save failed!", toErrorMessage(e));
+    }
+
+    // console.log("CREATE", payload);
 
     onSaved?.();
     handleClose();
@@ -130,6 +140,12 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
     setEquipmentTypeDialogOpen(false);
   };
 
+  const handleTypeCreated = (data: Type) => {
+    setValue("type", data.type);
+    setValue("mfgr", data.mfgr);
+    setValue("model", data.model);
+    setValue("typeID", data.typeID)
+  };
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -260,6 +276,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                       loading={locationByBuilidngLoading}
                       onChange={(_, newValue) => {
                         field.onChange(newValue?.locationID ?? null);
+                        console.log(newValue?.locationID);
                       }}
                       getOptionLabel={(option) => option.cubicle}
                       isOptionEqualToValue={(option, value) =>
@@ -278,6 +295,23 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                   );
                 }}
               />
+
+              <Controller
+                name="purchased"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    label="Purchased Date"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    error={!!errors.purchased}
+                    helperText={errors.purchased?.message}
+                  />
+                )}
+              />
+
               <Controller
                 name="type"
                 control={control}
@@ -306,7 +340,12 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                       </Box>
                     }
                     renderInput={(params) => (
-                      <TextField {...params} label="Type" />
+                      <TextField
+                        {...params}
+                        label="Type"
+                        error={!!errors.type}
+                        helperText={errors.type?.message}
+                      />
                     )}
                   />
                 )}
@@ -340,7 +379,12 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                       </Box>
                     }
                     renderInput={(params) => (
-                      <TextField {...params} label="Manufacturer" />
+                      <TextField
+                        {...params}
+                        label="Manufacturer"
+                        error={!!errors.mfgr}
+                        helperText={errors.mfgr?.message}
+                      />
                     )}
                   />
                 )}
@@ -370,7 +414,12 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                     }
                     disabled={!mfgr}
                     renderInput={(params) => (
-                      <TextField {...params} label="Model" />
+                      <TextField
+                        {...params}
+                        label="Model"
+                        error={!!errors.model}
+                        helperText={errors.model?.message}
+                      />
                     )}
                   />
                 )}
@@ -392,35 +441,37 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                 )}
               />
 
-            <Controller
-  name="vendor"
-  control={control}
-  render={({ field }) => {
-    const selectedVendor =
-      allVendor?.find((v) => v.vendor === field.value) ?? null;
+              <Controller
+                name="vendor"
+                control={control}
+                render={({ field }) => {
+                  const selectedVendor =
+                    allVendor?.find((v) => v.vendor === field.value) ?? null;
 
-    return (
-      <Autocomplete
-        options={allVendor ?? []}
-        value={selectedVendor}
-        onChange={(_, newValue) => {
-          field.onChange(newValue?.vendor ?? "");
-        }}
-        getOptionLabel={(option) => option.vendor}
-        isOptionEqualToValue={(option, value) =>
-          option.vendor === value.vendor
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label="Vendor"
-            fullWidth
-          />
-        )}
-      />
-    );
-  }}
-/>
+                  return (
+                    <Autocomplete
+                      options={allVendor ?? []}
+                      value={selectedVendor}
+                      onChange={(_, newValue) => {
+                        field.onChange(newValue?.vendor ?? "");
+                      }}
+                      getOptionLabel={(option) => option.vendor}
+                      isOptionEqualToValue={(option, value) =>
+                        option.vendor === value.vendor
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Vendor"
+                          fullWidth
+                          error={!!errors.vendor}
+                          helperText={errors.vendor?.message}
+                        />
+                      )}
+                    />
+                  );
+                }}
+              />
 
               <Controller
                 name="comments"
@@ -451,6 +502,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
       <EquipmentTypeDialog
         open={equipmentTypeDialogOpen}
         onClose={closeEquipmentTypeDialog}
+        onCreated={handleTypeCreated}
       />
     </Dialog>
   );

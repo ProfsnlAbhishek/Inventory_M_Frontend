@@ -20,6 +20,9 @@ import { useDisposalAll } from "../hooks/useDisposalAll";
 import { useBuildingAll } from "../hooks/useBuildingAll";
 import { useLocationsByBuilding } from "../hooks/useLocationByBuilding";
 import type { Location } from "../../../types/Location";
+import type { AddItemInput } from "../../../types/Item";
+import { toErrorMessage } from "../../../utils/errors";
+import { useUpdateItem } from "../hooks/useUpdateItem";
 
 type Props = {
   open: boolean;
@@ -60,7 +63,7 @@ export default function EquipmentEditDialog({
     disposal_date: null,
     sn_no: "",
     locationID: 0,
-    vendor: "",
+    vendor: "AMAZON",
     comments: "",
     building: 0,
     cubicle: 0,
@@ -102,24 +105,43 @@ export default function EquipmentEditDialog({
     useLocationsByBuilding(Number(watch("building")));
 
 
-
-
-
-
   const handleClose = () => {
     reset(defaultValues);
     onClose();
   };
 
-  const onSubmit = (data: EquipmentFormValues) => {
-    const payload = {
-      ...data,
-      
-        
-    };
 
+  const updateMutation = useUpdateItem(initialData?.itemID ?? NaN);
+
+  const onSubmit =async (data: EquipmentFormValues) => {
+    try{
+      const payload: AddItemInput = {
+          typeID: data.typeID!,
+          inv_no: data.inv_no,
+          disposal: data.disposal,
+          disposal_dt: data.disposal_date,
+          purchased: data.purchased,
+          amount: data.amount,
+          po: data.po,
+          sn_no: data.sn_no,
+          locationID: data.cubicle!,
+          vendor: "AMAZON",
+          comments: data.comments,
+          total_units: data.total_units,
+        };
+
+        const updated = await updateMutation.mutateAsync(payload);
+        console.log("data is inserted", updated)
+
+
+
+
+
+
+    }catch(e: unknown){
+      console.error("Item save failed!", toErrorMessage(e))
+    }
    
-      console.log("UPDATE", payload);
  
 
     onSaved?.();
@@ -160,9 +182,6 @@ export default function EquipmentEditDialog({
                     <TextField {...field} label="Inventory Number" fullWidth slotProps={{input: {readOnly: true}}} />
                   )}
                 />
-
-               
-              
               
               </Stack>
 
