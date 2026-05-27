@@ -1,11 +1,13 @@
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
-import React from "react";
 import type { Item } from "../../../types/Item";
 import ItemTable from "../components/ItemTable";
 import EquipmentAddDialog from "../../item/components/EquipmentAddDialog";
 import type { EquipmentFormValues } from "../../item/components/equipmentSchema";
 import EquipmentEditDialog from "../../item/components/EquipmentEditDialog";
 import Toast from "../../../utils/Toast";
+import React, { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
+import EquipmentPrintSection from "./EquipmentPrintSection";
 
 
 export default function DashboardPage() {
@@ -80,6 +82,14 @@ export default function DashboardPage() {
     setSelectedItem(null);
      setToast({ open: true, msg: "Form Cleared!", sev: "success" });
   }
+
+  const printRef = useRef<HTMLDivElement>(null);
+
+
+const handlePrint = useReactToPrint({
+  contentRef: printRef,
+});
+
 
   return (
     <Box>
@@ -331,7 +341,13 @@ export default function DashboardPage() {
             <Button variant="contained" onClick={openEquipmentAddDialog}>
               Add
             </Button>
-            <Button variant="contained">Print</Button>
+            
+
+<Button variant="contained" onClick={handlePrint} disabled={!selectedItem}>
+  Print
+</Button>
+
+
             <Button variant="contained">Reports</Button>
           </Stack>
         </Box>
@@ -353,8 +369,20 @@ export default function DashboardPage() {
           initialData={editValues}
           onToast={setToast}
 
+
         />
+
+        
+
+<div style={{ display: "none" }}>
+  <EquipmentPrintSection ref={printRef} selectedItem={selectedItem} />
+</div>
+
+
       </Stack>
+
+
+
 
       {toast && <Toast
         open={toast.open}
