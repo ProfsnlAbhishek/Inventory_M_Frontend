@@ -23,7 +23,7 @@ export const equipmentSchema = z.object({
   // Location
   building: z.number().min(1, "Building is required"),
   cubicle: z.number().int().min(1, "Cubicle is required"),
-  emp_at_loca: z.string().min(1, "Employee is required"),
+  emp_at_loca: z.string().optional().nullable(),
 
   // IDs derived at submit time (optional in form)
   typeID: z.number().optional(),
@@ -47,7 +47,7 @@ export type EquipmentFormValues = z.infer<typeof equipmentSchema>;
 
 export type EquipmentPayload = Omit<
   EquipmentFormValues,
-  "typeID" | "locationID"
+  "typeID" | "locationID" | "emp_at_loca"
 > & {
   typeID: number;
   locationID: number;
