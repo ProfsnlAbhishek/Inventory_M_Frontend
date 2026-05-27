@@ -16,9 +16,9 @@ import type { Resolver } from "react-hook-form";
 import { equipmentSchema, type EquipmentFormValues } from "./equipmentSchema";
 
 import type { Building } from "../../../types/Building";
-import { useDisposalAll } from "../hooks/useDisposalAll";
-import { useBuildingAll } from "../hooks/useBuildingAll";
-import { useLocationsByBuilding } from "../hooks/useLocationByBuilding";
+import { useDisposalAll } from "../../dashboard/hooks/useDisposalAll";
+import { useBuildingAll } from "../../building/hooks/useBuildingAll";
+import { useLocationsByBuilding } from "../../building/hooks/useLocationByBuilding";
 import type { Location } from "../../../types/Location";
 import type { AddItemInput, Item } from "../../../types/Item";
 import { toErrorMessage } from "../../../utils/errors";

@@ -2,9 +2,9 @@ import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import React from "react";
 import type { Item } from "../../../types/Item";
 import ItemTable from "../components/ItemTable";
-import EquipmentAddDialog from "../components/EquipmentAddDialog";
-import type { EquipmentFormValues } from "../components/equipmentSchema";
-import EquipmentEditDialog from "../components/EquipmentEditDialog";
+import EquipmentAddDialog from "../../item/components/EquipmentAddDialog";
+import type { EquipmentFormValues } from "../../item/components/equipmentSchema";
+import EquipmentEditDialog from "../../item/components/EquipmentEditDialog";
 import Toast from "../../../utils/Toast";
 
 

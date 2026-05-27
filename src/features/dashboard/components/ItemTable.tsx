@@ -3,7 +3,7 @@ import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import { Paper } from "@mui/material";
 
 import type { Item } from "../../../types/Item";
-import { useItemAll } from "../hooks/useItemAll";
+import { useItemAll } from "../../item/hooks/useItemAll";
 
 type Props = {
   setSelectedRow: (row: Item) => void;
