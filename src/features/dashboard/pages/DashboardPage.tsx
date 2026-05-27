@@ -230,9 +230,10 @@ export default function DashboardPage() {
             <TextField
               label="Disposal Date"
               fullWidth
+              type="datetime-local"
               value={selectedItem?.disposal_dt ?? ""}
               slotProps={{
-                inputLabel: { shrink: !!selectedItem },
+                inputLabel: { shrink:  true },
                 input: { readOnly: true },
               }}
             />
@@ -255,9 +256,10 @@ export default function DashboardPage() {
             <TextField
               label="Verified Time"
               fullWidth
+              type="datetime-local"
               value={selectedItem?.verif_time ?? ""}
               slotProps={{
-                inputLabel: { shrink: !!selectedItem },
+                inputLabel: { shrink: true },
                 input: { readOnly: true },
               }}
             />
@@ -265,7 +267,7 @@ export default function DashboardPage() {
             <TextField
               label="Person At Location"
               fullWidth
-              value={selectedItem?.verified_by ?? ""}
+              value={selectedItem?.emp_at_loca ?? ""}
               slotProps={{
                 inputLabel: { shrink: !!selectedItem },
                 input: { readOnly: true },

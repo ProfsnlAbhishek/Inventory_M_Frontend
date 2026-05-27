@@ -23,6 +23,7 @@ export const equipmentSchema = z.object({
   // Location
   building: z.number().min(1, "Building is required"),
   cubicle: z.number().int().min(1, "Cubicle is required"),
+  emp_at_loca: z.string().min(1, "Employee is required"),
 
   // IDs derived at submit time (optional in form)
   typeID: z.number().optional(),

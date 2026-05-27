@@ -15,6 +15,7 @@ export interface Item {
   po: string;
   sn_no?: string;
   location: Location;
+  emp_at_loca: string;
   vendor: string;
   comments?: string;
 }

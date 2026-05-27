@@ -12,7 +12,7 @@ export const createItem = async (payload: AddItem): Promise<AddItem> =>{
     return data;
 }
 
-export const updateItem = async (id:number, payload: AddItem): Promise<AddItem>=>{
-    const {data} = await api.put<AddItem>(`/item/${id}`, payload);
+export const updateItem = async (id:number, payload: AddItem): Promise<Item>=>{
+    const {data} = await api.put<Item>(`/item/${id}`, payload);
     return data;
 }

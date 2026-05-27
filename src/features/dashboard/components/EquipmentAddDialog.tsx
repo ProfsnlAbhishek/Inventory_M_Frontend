@@ -27,6 +27,7 @@ import type { AddItemInput } from "../../../types/Item";
 import { toErrorMessage } from "../../../utils/errors";
 import type { Type } from "../../../types/Type";
 import Toast from "../../../utils/Toast";
+import { toUpperStr } from "../../../utils/formatting";
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -186,6 +187,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                   render={({ field }) => (
                     <TextField
                       {...field}
+                      onChange={(e) => field.onChange(toUpperStr(e.target.value))}
                       label="Inventory Number"
                       fullWidth
                       error={!!errors.inv_no}
@@ -200,6 +202,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                   render={({ field }) => (
                     <TextField
                       {...field}
+                      onChange={(e)=> field.onChange(toUpperStr(e.target.value))}
                       label="PO"
                       fullWidth
                       error={!!errors.po}
@@ -278,6 +281,14 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                           label="Select Building"
                           error={!!errors.building}
                           helperText={errors.building?.message}
+                          
+                          sx={{
+                              "& input": {
+                                textTransform: "uppercase"
+                              }
+                            }}
+
+                          
                         />
                       )}
                     />
@@ -314,6 +325,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                         <TextField
                           {...params}
                           label="Select Cubicle"
+                          type="number"
                           error={!!errors.cubicle}
                           helperText={errors.cubicle?.message}
                         />
@@ -372,6 +384,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                         label="Type"
                         error={!!errors.type}
                         helperText={errors.type?.message}
+                        sx={{"& input": {textTransform: "uppercase"}}}
                       />
                     )}
                   />
@@ -411,6 +424,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                         label="Manufacturer"
                         error={!!errors.mfgr}
                         helperText={errors.mfgr?.message}
+                        sx={{"& input":{textTransform: "uppercase"}}}
                       />
                     )}
                   />
@@ -446,6 +460,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                         label="Model"
                         error={!!errors.model}
                         helperText={errors.model?.message}
+                        sx={{"& input":{textTransform: "uppercase"}}}
                       />
                     )}
                   />
@@ -464,6 +479,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                     onChange={(e) => {
                       field.onChange(e.target.value);
                     }}
+                    sx={{"& input":{textTransform: "uppercase"}}}
                   />
                 )}
               />
@@ -493,6 +509,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                           fullWidth
                           error={!!errors.vendor}
                           helperText={errors.vendor?.message}
+                          sx={{"& input":{textTransform: "uppercase"}}}
                         />
                       )}
                     />
@@ -510,7 +527,7 @@ export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: 
                     helperText={errors.comments?.message}
                     value={field.value}
                     onChange={(e) => {
-                      field.onChange(e.target.value);
+                      field.onChange(toUpperStr(e.target.value));
                     }}
                   />
                 )}

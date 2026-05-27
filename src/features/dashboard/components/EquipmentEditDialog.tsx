@@ -280,7 +280,7 @@ export default function EquipmentEditDialog({
                 render={({ field }) => (
                   <TextField
                     label="Date"
-                    type="date"
+                    type="datetime-local"
                     value={field.value}
                     onChange={(e) => {field.onChange(e.target.value); console.log(e.target.value)}}
                     slotProps={{ inputLabel: { shrink: true } }}

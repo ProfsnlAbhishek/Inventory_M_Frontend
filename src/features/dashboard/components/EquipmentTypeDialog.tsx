@@ -19,6 +19,7 @@ import {
 import { useCreateItemType } from "../hooks/useCreateItemType";
 import type { TypeInput } from "../../../types/Type";
 import { toErrorMessage } from "../../../utils/errors";
+import { toUpperStr } from "../../../utils/formatting";
 
 type Props = {
   open: boolean;
@@ -109,7 +110,9 @@ export default function EquipmentTypeDialog({
                   label="Type"
                   fullWidth
                   error={!!errors.type}
+                  onChange={(e)=> field.onChange(toUpperStr(e.target.value))}
                   helperText={errors.type?.message}
+                 
                 />
               )}
             />
@@ -124,6 +127,7 @@ export default function EquipmentTypeDialog({
                   fullWidth
                   error={!!errors.mfgr}
                   helperText={errors.mfgr?.message}
+                  onChange={(e)=> field.onChange(toUpperStr(e.target.value))}
                 />
               )}
             />
@@ -138,6 +142,7 @@ export default function EquipmentTypeDialog({
                   fullWidth
                   error={!!errors.model}
                   helperText={errors.model?.message}
+                  onChange={(e)=> field.onChange(toUpperStr(e.target.value))}
                 />
               )}
             />
@@ -151,6 +156,7 @@ export default function EquipmentTypeDialog({
                   fullWidth
                   error={!!errors.comments}
                   helperText={errors.comments?.message}
+                  onChange={(e)=> field.onChange(toUpperStr(e.target.value))}
                 />
               )}
             />
