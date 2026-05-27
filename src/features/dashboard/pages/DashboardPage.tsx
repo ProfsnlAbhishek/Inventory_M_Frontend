@@ -5,13 +5,24 @@ import ItemTable from "../components/ItemTable";
 import EquipmentAddDialog from "../components/EquipmentAddDialog";
 import type { EquipmentFormValues } from "../components/equipmentSchema";
 import EquipmentEditDialog from "../components/EquipmentEditDialog";
+import Toast from "../../../utils/Toast";
+
 
 export default function DashboardPage() {
+
   const [selectedItem, setSelectedItem] = React.useState<Item | null>(null);
+
+  const [toast, setToast] = React.useState<{
+    open: boolean;
+    msg: string;
+    sev: "success" | "error" | "warning" | "info";
+  } | null>(null);
+
 
   const grabSelectedRow = (row: Item) => {
     console.log(row);
     setSelectedItem(row);
+
   };
 
   const [equipmentAddDialogOpen, setEquipmentAddDialogOpen] =
@@ -38,14 +49,16 @@ export default function DashboardPage() {
   };
 
   const onAddEquipmentSaved = () => {};
-  const onEditEquipmentSaved = () => {};
+  const onEditEquipmentSaved = (updatedItem : Item) => {
+    setSelectedItem(updatedItem);
+  };
 
   const editValues: EquipmentFormValues | null = selectedItem
     ? {
         itemID: selectedItem.itemID,
         typeID: selectedItem.type.typeID,
         inv_no: selectedItem.inv_no,
-        purchased: selectedItem.purchased,
+        purchased: selectedItem.purchased!,
         amount: selectedItem.amount,
         disposal: selectedItem.disposal,
         disposal_date: selectedItem.disposal_dt,
@@ -62,6 +75,11 @@ export default function DashboardPage() {
         cubicle: selectedItem.location?.locationID ?? 0,
       }
     : null;
+
+  const clearForm = () => {
+    setSelectedItem(null);
+     setToast({ open: true, msg: "Form Cleared!", sev: "success" });
+  }
 
   return (
     <Box>
@@ -298,7 +316,7 @@ export default function DashboardPage() {
             />
           </Box>
           <Stack direction="row" spacing={2} sx={{ marginLeft: 2 }}>
-            <Button variant="contained" onClick={() => setSelectedItem(null)}>
+            <Button variant="contained" onClick={() => clearForm()}>
               Clear Form
             </Button>
             <Button
@@ -323,6 +341,7 @@ export default function DashboardPage() {
           open={equipmentAddDialogOpen}
           onClose={closeEquipmentAddDialog}
           onSaved={onAddEquipmentSaved}
+          onToast={setToast}
         />
 
         <EquipmentEditDialog
@@ -330,8 +349,20 @@ export default function DashboardPage() {
           onClose={closeEquipmentEditDialog}
           onSaved={onEditEquipmentSaved}
           initialData={editValues}
+          onToast={setToast}
+
         />
       </Stack>
+
+      {toast && <Toast
+        open={toast.open}
+        msg={toast.msg}
+        sev={toast.sev}
+        onClose={()=> setToast(null)}
+
+
+      
+      />}
     </Box>
   );
 }

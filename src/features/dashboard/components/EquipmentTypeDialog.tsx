@@ -24,12 +24,18 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onCreated: (data: TypeInput) => void;
+  onToast?: (t: {
+    open: boolean;
+    msg: string;
+    sev: "success" | "info" | "error" | "warning";
+  }) => void;
 };
 
 export default function EquipmentTypeDialog({
   open,
   onClose,
   onCreated,
+  onToast,
 }: Props) {
   const {
     control,
@@ -67,9 +73,21 @@ export default function EquipmentTypeDialog({
 
       const created = await createMutation.mutateAsync(payload);
       onCreated?.(created);
-      console.log(created);
+      console.log("created", created);
+
+      onToast?.({
+        open: true,
+        msg: "Type Created!",
+        sev: "success",
+      });
     } catch (e: unknown) {
       console.error("ItemType creation failed", toErrorMessage(e));
+
+      onToast?.({
+        open: true,
+        msg: "Type Creation Failed!",
+        sev: "error",
+      });
     }
 
     handleClose();
@@ -131,8 +149,8 @@ export default function EquipmentTypeDialog({
                   {...field}
                   label="Comments"
                   fullWidth
-                  error={!!errors.model}
-                  helperText={errors.model?.message}
+                  error={!!errors.comments}
+                  helperText={errors.comments?.message}
                 />
               )}
             />

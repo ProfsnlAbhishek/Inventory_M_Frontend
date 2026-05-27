@@ -26,12 +26,22 @@ import { useCreateItem } from "../hooks/useCreateItem";
 import type { AddItemInput } from "../../../types/Item";
 import { toErrorMessage } from "../../../utils/errors";
 import type { Type } from "../../../types/Type";
+import Toast from "../../../utils/Toast";
 type Props = {
   open: boolean;
   onClose: () => void;
   onSaved?: () => void;
+   onToast?: (t: {
+    open: boolean;
+    msg: string;
+    sev: "success" | "info" | "error" | "warning";
+  }) => void;
+  
 };
-export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
+
+export default function EquipmentAddDialog({ open, onClose, onSaved, onToast }: Props) {
+
+   const [toast, setToast] = React.useState<{open: boolean; msg: string; sev: "success" | "info" | "error" | "warning"} | null> (null);
   const { data: allItemType } = useItemTypeAll();
 
   const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
@@ -123,8 +133,22 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
 
       const created = await createMutation.mutateAsync(payload);
       console.log("this is created", created);
+      
+       onToast?.({
+        open: true,
+        msg: "Item Created!",
+        sev: "success"
+      })
     } catch (e: unknown) {
       console.error("Item save failed!", toErrorMessage(e));
+      
+
+      onToast?.({
+        open: true,
+        msg: "Item Saved Failed!",
+        sev: "error"
+      })
+      
     }
 
     // console.log("CREATE", payload);
@@ -213,6 +237,9 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
                       label="Cost (per unit)"
                       fullWidth
                       type="number"
+                      error={!!errors.amount}
+                      helperText={errors?.amount?.message}
+
                     />
                   )}
                 />
@@ -503,7 +530,16 @@ export default function EquipmentAddDialog({ open, onClose, onSaved }: Props) {
         open={equipmentTypeDialogOpen}
         onClose={closeEquipmentTypeDialog}
         onCreated={handleTypeCreated}
+        onToast={setToast}
       />
+
+       {toast && <Toast 
+          open={toast.open}
+          msg={toast.msg}
+          sev={toast.sev}
+          onClose={() => setToast(null)}
+        
+      />}
     </Dialog>
   );
 }

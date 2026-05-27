@@ -14,27 +14,33 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Resolver } from "react-hook-form";
 import { equipmentSchema, type EquipmentFormValues } from "./equipmentSchema";
-import EquipmentTypeDialog from "./EquipmentTypeDialog";
+
 import type { Building } from "../../../types/Building";
 import { useDisposalAll } from "../hooks/useDisposalAll";
 import { useBuildingAll } from "../hooks/useBuildingAll";
 import { useLocationsByBuilding } from "../hooks/useLocationByBuilding";
 import type { Location } from "../../../types/Location";
-import type { AddItemInput } from "../../../types/Item";
+import type { AddItemInput, Item } from "../../../types/Item";
 import { toErrorMessage } from "../../../utils/errors";
 import { useUpdateItem } from "../hooks/useUpdateItem";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSaved?: () => void;
+  onSaved?: (updatedItem : Item) => void;
   initialData?: EquipmentFormValues | null;
+   onToast?: (t: {
+    open: boolean;
+    msg: string;
+    sev: "success" | "info" | "error" | "warning";
+  }) => void;
 };
 export default function EquipmentEditDialog({
   open,
   onClose,
   onSaved,
   initialData,
+  onToast,
 }: Props) {
   const { data: allBuilding, isLoading: buildingLoading } = useBuildingAll();
 
@@ -117,24 +123,17 @@ export default function EquipmentEditDialog({
 
       const updated = await updateMutation.mutateAsync(payload);
       console.log("data is inserted", updated);
+      onToast?.({open: true, msg: "Form Updated!", sev: "success"})
+      onSaved?.(updated);
     } catch (e: unknown) {
       console.error("Item save failed!", toErrorMessage(e));
+      onToast?.({open: true, msg: "Form Updating Failed!", sev: "error"})
     }
-
-    onSaved?.();
     handleClose();
+
   };
 
-  const [equipmentTypeDialogOpen, setEquipmentTypeDialogOpen] =
-    React.useState(false);
-
-  const closeEquipmentTypeDialog = () => {
-    setEquipmentTypeDialogOpen(false);
-  };
-
-  const handleTypeCreated= ()=>{
-    console.log("worked");
-  }
+ 
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
@@ -283,7 +282,7 @@ export default function EquipmentEditDialog({
                     label="Date"
                     type="date"
                     value={field.value}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    onChange={(e) => {field.onChange(e.target.value); console.log(e.target.value)}}
                     slotProps={{ inputLabel: { shrink: true } }}
                     error={!!errors.disposal_date}
                     helperText={errors.disposal_date?.message}
@@ -317,11 +316,6 @@ export default function EquipmentEditDialog({
           </Button>
         </DialogActions>
       </form>
-      <EquipmentTypeDialog
-        open={equipmentTypeDialogOpen}
-        onClose={closeEquipmentTypeDialog}
-        onCreated={handleTypeCreated}
-      />
     </Dialog>
   );
 }
